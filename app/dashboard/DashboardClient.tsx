@@ -1,39 +1,25 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Wallet, TrendingUp, TrendingDown, Target } from 'lucide-react'
 import Link from 'next/link'
-import { demoAccounts, demoTransactions, demoGoals, demoCategories } from '@/lib/demo-data'
+import type { Account, Transaction, FinancialGoal } from '@/lib/types/database'
+import { demoAccounts, demoTransactions, demoGoals } from '@/lib/demo-data'
 
 export default function DashboardClient() {
-  const [isDemoMode, setIsDemoMode] = useState(false)
-  const [accounts, setAccounts] = useState<any[]>([])
-  const [transactions, setTransactions] = useState<any[]>([])
-  const [goals, setGoals] = useState<any[]>([])
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('demoMode') === 'true'
+    }
+    return false
+  })
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [goals, setGoals] = useState<FinancialGoal[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const checkDemoMode = async () => {
-      const demoMode = localStorage.getItem('demoMode') === 'true'
-      setIsDemoMode(demoMode)
-
-      if (demoMode) {
-        // Use demo data
-        setAccounts(demoAccounts)
-        setTransactions(demoTransactions.slice(0, 5))
-        setGoals(demoGoals)
-        setLoading(false)
-      } else {
-        // Fetch real data
-        await fetchRealData()
-      }
-    }
-
-    checkDemoMode()
-  }, [])
-
-  const fetchRealData = async () => {
+  const fetchRealData = useCallback(async () => {
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
