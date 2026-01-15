@@ -57,7 +57,20 @@ export default function DashboardClient() {
 
     setGoals(goalsData || [])
     setLoading(false)
-  }
+  }, [])
+
+  useEffect(() => {
+    if (isDemoMode) {
+      // Use demo data
+      setAccounts(demoAccounts as Account[])
+      setTransactions(demoTransactions.slice(0, 5) as Transaction[])
+      setGoals(demoGoals as FinancialGoal[])
+      setLoading(false)
+    } else {
+      // Fetch real data
+      fetchRealData()
+    }
+  }, [isDemoMode, fetchRealData])
 
   // Calculate stats
   const totalBalance = accounts.reduce((sum, acc) => sum + Number(acc.balance), 0)
